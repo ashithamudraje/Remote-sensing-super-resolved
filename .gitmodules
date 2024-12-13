@@ -1,0 +1,3 @@
+[submodule "BigEarthNet-S2_19-classes_models"]
+	path = BigEarthNet-S2_19-classes_models
+	url = https://git.tu-berlin.de/rsim/BigEarthNet-S2_19-classes_models
