@@ -1,3 +1,6 @@
 [submodule "BigEarthNet-S2_19-classes_models"]
 	path = BigEarthNet-S2_19-classes_models
 	url = https://git.tu-berlin.de/rsim/BigEarthNet-S2_19-classes_models
+[submodule "bigearthnet-models-tf"]
+	path = bigearthnet-models-tf
+	url = https://git.tu-berlin.de/rsim/bigearthnet-models-tf/-/tree/master?ref_type=heads
