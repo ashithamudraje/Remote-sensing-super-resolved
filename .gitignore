@@ -16,3 +16,7 @@ sd2/
 BasicSR/
 BigEarthNet-S2_19-classes_models/
 bigearthnet-models-tf/
+rsa_key
+rsa_key.pub
+bigearthnet-models-tf copy/
+BigEarthNet-S2_19-classes_models copy/
