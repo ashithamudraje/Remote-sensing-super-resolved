@@ -6,8 +6,7 @@ checkpoints/
 .vscode
 script/mlruns
 script/mlruns_new
-DAPE.pth
-ram_swin_large_14m.pth
+*.pth
 data/
 HAT/
 Real-ESRGAN/
