@@ -32,7 +32,7 @@ def main(args):
 
     # Load the PyTorch model architecture
     model = models.__dict__[args.arch](pretrained=False).to(device=device)
-    
+    #model.fc = torch.nn.Linear(model.fc.in_features, 19)
     # Load checkpoint
     checkpoint = torch.load(args.checkpoint_dir, map_location=device)
     
@@ -65,6 +65,7 @@ def main(args):
     else:
         cam_methods = [
             "CAM",
+            #"GradCAM",
         ]
 
     # Hook the target layer and apply CAM method
@@ -73,11 +74,11 @@ def main(args):
     ]
 
     # Forward pass through the model before extracting CAM
-    with torch.no_grad():
-        scores = model(img_tensor)
-    
+    #with torch.no_grad():
+    scores = model(img_tensor)
+    print('score', scores)
     probs = torch.sigmoid(scores)
-
+    print('probs', probs.shape)
     # Print all class probabilities
     # for idx, prob in enumerate(probs[0]):
     #     print(f"Class index: {idx}, Probability: {prob.item():.4f}")
@@ -99,12 +100,13 @@ def main(args):
     ax.set_title("Input", size=8)
 
     for idx, extractor in zip(range(1, len(cam_extractors) + 1), cam_extractors):
+        #extractor.enable_hooks()
         # Use the hooked data to compute activation map
         activation_map = extractor(class_idx, scores)[0].squeeze(0).cpu()
 
         # Clean up hooks after extracting activation maps
-        #extractor.disable_hooks()
-        #extractor.remove_hooks()
+        # extractor.disable_hooks()
+        # extractor.remove_hooks()
         
         # Convert activation map to heatmap and overlay on input image
         heatmap = to_pil_image(activation_map, mode="F")

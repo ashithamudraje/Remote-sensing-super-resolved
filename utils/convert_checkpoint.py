@@ -2,12 +2,12 @@ import tensorflow as tf
 import torch
 import numpy as np
 from torchvision.models import resnet152
-
-
+from torchvision.models import resnet50
+from torchvision.models import resnet101
 # Step 1: Load the TensorFlow ResNet152 model and checkpoint
 def load_tf_model(checkpoint_dir, checkpoint_name):
     # Define your TensorFlow model architecture
-    model = tf.keras.applications.ResNet152(weights=None)
+    model = tf.keras.applications.ResNet101(weights=None)
     
     # Create a checkpoint object to restore the model's weights
     checkpoint = tf.train.Checkpoint(model=model)
@@ -38,7 +38,7 @@ def extract_tf_weights(tf_model):
 # Step 3: Define a PyTorch ResNet152 model
 def load_torch_model():
     # Load pre-built PyTorch ResNet152 model
-    torch_model = resnet152(pretrained=False)
+    torch_model = resnet101(pretrained=False)
     return torch_model
 
 
@@ -63,17 +63,17 @@ def convert_tf_to_torch(tf_weights, torch_model):
 
 
 # Step 5: Save the PyTorch model
-def save_pytorch_model(torch_model, output_path="converted_srresnet_resnet152.pth"):
+def save_pytorch_model(torch_model, output_path):
     torch.save(torch_model.state_dict(), output_path)
     print(f"PyTorch model saved to {output_path}")
 
 
 if __name__ == "__main__":
     # Path to the TensorFlow checkpoint directory
-    tf_checkpoint_dir = "/netscratch/mudraje/super_resolution_remote_sensing/res152_srresnet_tf_with_resolved/models"
+    tf_checkpoint_dir = "/netscratch/mudraje/super_resolution_remote_sensing/checkpoints/ResNet101_srresnet_32batch_normalization/models"
     
     # Name of the specific checkpoint file (without extension)
-    checkpoint_name = "iteration-231300"
+    checkpoint_name = "iteration-117992"
     
     # Step 1: Load the TensorFlow model and checkpoint
     tf_model = load_tf_model(tf_checkpoint_dir, checkpoint_name)
@@ -88,4 +88,5 @@ if __name__ == "__main__":
     converted_torch_model = convert_tf_to_torch(tf_weights, torch_model)
     
     # Step 5: Save the PyTorch model with the converted weights
-    save_pytorch_model(converted_torch_model)
+    output_path = "/netscratch/mudraje/super_resolution_remote_sensing/converted_checkpoints/converted_Resnet101_srresnet_32batch_normalization.pth"
+    save_pytorch_model(converted_torch_model, output_path) 

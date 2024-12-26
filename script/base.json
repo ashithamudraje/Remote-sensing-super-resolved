@@ -1,0 +1,20 @@
+{
+    "model_name": "ResNet101",
+    "modality": "S2",
+    "batch_size":32,
+    "nb_epoch":50,
+    "learning_rate":1e-3,
+    "save_checkpoint_after_iteration": 0,
+    "save_checkpoint_per_iteration": 1000,
+    "tr_tf_record_files": ["/ds/images/BigEarthNet/BigEarthNet-S2/BigEarthNet_rgb_split/super_resolved_images/Seesr_all_splits/train.tfrecord"], 
+    "val_tf_record_files": ["/ds/images/BigEarthNet/BigEarthNet-S2/BigEarthNet_rgb_split/super_resolved_images/Seesr_all_splits/val.tfrecord"], 
+    "test_tf_record_files": ["/ds/images/BigEarthNet/BigEarthNet-S2/BigEarthNet_rgb_split/super_resolved_images/Seesr_all_splits/test.tfrecord"],  
+    "label_type": "BigEarthNet-19", 
+    "fine_tune": false,
+    "shuffle_buffer_size": 5000,
+    "training_size": 269695,
+    "test_size": 125866,
+    "model_file": "/netscratch/mudraje/super_resolution_remote_sensing/checkpoints/Resnet101_seesr_32batch_normalization/models/iteration-210700",
+    "out_dir":"/netscratch/mudraje/super_resolution_remote_sensing/checkpoints/Resnet101_seesr_32batch_normalization/results_25",
+    "experiment_name": "Resnet152_seesr_32batch_normalization"
+}

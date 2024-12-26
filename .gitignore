@@ -6,7 +6,8 @@ checkpoints/
 .vscode
 script/mlruns
 script/mlruns_new
-*.pth
+DAPE.pth
+ram_swin_large_14m.pth
 data/
 HAT/
 Real-ESRGAN/
@@ -18,3 +19,4 @@ BigEarthNet-S2_19-classes_models/
 bigearthnet-models-tf/
 rsa_key
 rsa_key.pub
+images/

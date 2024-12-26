@@ -307,127 +307,78 @@
 #     args = parser.parse_args()
 
 #     main(args)
-import requests
-import tensorflow as tf
+from gradcam import GradCAM
+from tensorflow.keras.preprocessing.image import img_to_array
+from tensorflow.keras.preprocessing.image import load_img
+from tensorflow.keras.applications import imagenet_utils
+from tensorflow.keras.models import load_model
 import numpy as np
 import argparse
 import imutils
 import cv2
-import matplotlib.pyplot as plt
-from gradcam import GradCAM
-from tensorflow.keras.preprocessing.image import img_to_array, load_img
-from torchvision.transforms.functional import normalize, resize, to_pil_image, to_tensor
-from tensorflow.keras.applications.resnet import decode_predictions
 
-from io import BytesIO
-from PIL import Image
-# Construct the argument parser and parse the arguments
+
+# construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--image", required=True, help="Path to the input image")
-ap.add_argument("-m", "--checkpoint_dir", type=str, required=True, help="Path to the checkpoint directory")
-ap.add_argument("-wd", "--width", type=int, required=True, help="Width of the image")
-ap.add_argument("-ht", "--height", type=int, required=True, help="Height of the image")
-ap.add_argument("-l", "--layer", type=str, default="None", help="GradCAM of specific layer")
-ap.add_argument("-o", "--output", type=str, default="output.jpg", help="Path to save the output image")
-ap.add_argument("-c", "--class_idx", type=int, required=True, help="Class index for which to generate CAM")
-ap.add_argument("-lbl", "--label", type=str, required=True, help="Custom class label to display")
+ap.add_argument("-i", "--image", required=True,
+	help="path to the input image")
+ap.add_argument("-m", "--model", type=str, required=True,
+	help="path to the model")
+ap.add_argument("-wd", "--width", type=int, required=True,
+	help="width of the image")
+ap.add_argument("-ht", "--height", type=int, required=True,
+	help="height of the image")
+ap.add_argument("-l", "--layer", type=str, default="None",
+	help="gradcam of specific layer")
+ap.add_argument("-o", "--output", type=str, default=None, 
+    help="Path to save figure")
 args = vars(ap.parse_args())
 
-# Define your model architecture here (adjust as per your custom model)
-# For example, if you are using ResNet or SRResNet architecture
-def build_model():
-    model = tf.keras.applications.ResNet152(weights=None)  # Replace with your actual model architecture
-    return model
-
-# Load the model architecture
-model = build_model()
-
-# Create a checkpoint object to restore the model's weights
-checkpoint = tf.train.Checkpoint(model=model)
-
-# Restore from the latest checkpoint in the specified directory
-latest_checkpoint = tf.train.latest_checkpoint(args["checkpoint_dir"])
-if latest_checkpoint:
-    print(f"Restoring model from checkpoint: {latest_checkpoint}")
-    checkpoint.restore(latest_checkpoint).expect_partial()
-else:
-    raise FileNotFoundError(f"No checkpoint found in directory: {args['checkpoint_dir']}")
-
-# Print the model summary to ensure the weights are loaded
+# load the custom model and print summary()
+model = load_model(args["model"])
 model.summary()
 
-# Load and preprocess the input image
-image_path = args["image"]
+image = args["image"]
 w, h = args["width"], args["height"]
-orig = cv2.imread(image_path)
+orig = cv2.imread(image)
 resized = cv2.resize(orig, (w, h))
 
-# img_path =  args["image"]
-# pil_img = Image.open(img_path, mode="r").convert("RGB")
-# img_tensor = normalize(
-#         to_tensor(resize(pil_img, (224, 224))),
-#         [0.485, 0.456, 0.406],
-#         [0.229, 0.224, 0.225],
-# )
-# img_tensor.requires_grad_(True)
-# Load the input image in Keras format and preprocess it
-image = load_img(image_path, target_size=(w, h))
+# load the input image from disk (in Keras/TensorFlow format) and
+# preprocess it
+image = load_img(image, target_size=(w, h))
 image = img_to_array(image)
 image = np.expand_dims(image, axis=0)
 image = image.astype('float64')
-image = tf.keras.applications.resnet.preprocess_input(image)
-#scores = model(img_tensor.unsqueeze(0))
 
-        # Select the class index
-#i = scores.squeeze(0).argmax().item()
-
-# Perform prediction on the input image
 preds = model.predict(image)
-
-top_preds = decode_predictions(preds, top=5)[0]
-
-# Print the top-5 predictions with class names and probabilities
-print("Top predictions:")
-for pred in top_preds:
-    print(f"Label: {pred[1]}, Probability: {pred[2]:.4f}")
-
-# Extract the most probable class index
 i = np.argmax(preds[0])
-print('class', i)
-predicted_label = top_preds[0][1]  # Label of the most probable class
-predicted_prob = top_preds[0][2]  # Probability of the most probable class
 
-class_idx = args['class_idx']  # Class index for CAM (passed by the user)
-custom_label = args['label']
-# Initialize GradCAM with the specified layer, if provided
+
 if args['layer'] == 'None':
-    cam = GradCAM(model, class_idx)
+	cam = GradCAM(model, i)
 else:
-    cam = GradCAM(model, class_idx, args['layer'])
-
-# Compute the heatmap using GradCAM
+    cam = GradCAM(model, i, args['layer'])
+    
 heatmap = cam.compute_heatmap(image)
 
-# Resize the resulting heatmap to the original input image dimensions
-# and overlay the heatmap on top of the original image
+# resize the resulting heatmap to the original input image dimensions
+# and then overlay heatmap on top of the image
 heatmap = cv2.resize(heatmap, (orig.shape[1], orig.shape[0]))
 (heatmap, output) = cam.overlay_heatmap(heatmap, orig, alpha=0.5)
 
-# Draw the predicted label on the output image
+# draw the predicted label on the output image
 cv2.rectangle(output, (0, 0), (140, 40), (0, 0, 0), -1)
-cv2.putText(output, f"Class: {custom_label}, Index: {class_idx}", (10, 40), 
-            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
+cv2.putText(output, "GradCAM", (10, 25), cv2.FONT_HERSHEY_SIMPLEX,
+	0.6, (255, 255, 255), 2)
 
+# display the original image and resulting heatmap and output image
+# to our screen
 output = np.hstack([orig, heatmap, output])
 output = imutils.resize(output, height=400)
-# Save the output image to the specified file path
+cv2.imshow("Output", output)
+cv2.waitKey(0)
+
+
 output_path = args["output"]
 cv2.imwrite(output_path, output)
 print(f"Output image saved to: {output_path}")
-
-# Display the original, heatmap, and output images using matplotlib
-# output = np.hstack([orig, heatmap, output])
-# plt.figure(figsize=(10, 5))
-# plt.imshow(cv2.cvtColor(output, cv2.COLOR_BGR2RGB))
-# plt.axis('off')
-# plt.show()
